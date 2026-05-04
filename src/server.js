@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors'); // ✅ Excelente que lo hayas incluido
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -8,17 +8,17 @@ const app = express();
 require('./config/db');
 
 // Middlewares globales
-app.use(cors()); // ✅ Mantenlo siempre aquí para que Nicole no tenga bloqueos
+app.use(cors());
 app.use(express.json()); 
 
 // ========================
 // RUTAS DE LA API
 // ========================
 const authRoutes = require('./routes/authRoutes');
-const solicitudesRoutes = require('./routes/solicitudesRoutes'); // ⬅️ IMPORTANTE: Agregamos las solicitudes
+const solicitudesRoutes = require('./routes/solicitudesRoutes'); // IMPORTANTE: Agregamos las solicitudes
 
 app.use('/api/auth', authRoutes);
-app.use('/api/solicitudes', solicitudesRoutes); // ⬅️ IMPORTANTE: Habilitamos las rutas de solicitudes
+app.use('/api/solicitudes', solicitudesRoutes); // IMPORTANTE: Habilitamos las rutas de solicitudes
 
 // Ruta de prueba
 app.get('/', (req, res) => {
