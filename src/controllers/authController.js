@@ -127,4 +127,40 @@ const logout = async (req, res) => {
     }
 };
 
-module.exports = { login, renovarToken, logout };
+const registrarUsuario = async (req, res) => {
+    const { nombre, correo, contrasena, id_rol } = req.body;
+
+    try {
+        if (!nombre || !correo || !contrasena || !id_rol) {
+            return res.status(400).json({ mensaje: 'Todos los campos son obligatorios.' });
+        }
+
+        const usuarioExistente = await pool.query('SELECT * FROM usuarios_sistema WHERE correo = $1', [correo]);
+        if (usuarioExistente.rows.length > 0) {
+            return res.status(400).json({ mensaje: 'El correo ya está registrado en el club.' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const passwordHasheada = await bcrypt.hash(contrasena, salt);
+
+        const query = `
+            INSERT INTO usuarios_sistema (nombre, correo, contrasena, id_rol) 
+            VALUES ($1, $2, $3, $4) 
+            RETURNING id_usuario, nombre, correo, id_rol
+        `;
+        const valores = [nombre, correo, passwordHasheada, id_rol];
+        
+        const nuevoUsuario = await pool.query(query, valores);
+
+        res.status(201).json({ 
+            mensaje: 'Usuario registrado exitosamente por Jefatura.',
+            usuario: nuevoUsuario.rows[0]
+        });
+
+    } catch (error) {
+        console.error('Error al registrar usuario:', error);
+        res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    }
+};
+
+module.exports = { login, renovarToken, logout, registrarUsuario };
