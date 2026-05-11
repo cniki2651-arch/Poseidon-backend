@@ -15,10 +15,10 @@ app.use(express.json());
 // RUTAS DE LA API
 // ========================
 const authRoutes = require('./routes/authRoutes');
-const solicitudesRoutes = require('./routes/solicitudesRoutes'); // IMPORTANTE: Agregamos las solicitudes
+//const solicitudesRoutes = require('./routes/solicitudesRoutes'); // IMPORTANTE: Agregamos las solicitudes
 
 app.use('/api/auth', authRoutes);
-app.use('/api/solicitudes', solicitudesRoutes); // IMPORTANTE: Habilitamos las rutas de solicitudes
+//app.use('/api/solicitudes', solicitudesRoutes); // IMPORTANTE: Habilitamos las rutas de solicitudes
 
 // Ruta de prueba
 app.get('/', (req, res) => {
