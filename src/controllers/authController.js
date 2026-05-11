@@ -128,11 +128,11 @@ const logout = async (req, res) => {
 };
 
 const registrarUsuario = async (req, res) => {
-    const { nombres, correo, contrasena, id_rol } = req.body;
+    const { nombres, apellidos, correo, contrasena, id_rol } = req.body;
 
     try {
-        if (!nombres || !correo || !contrasena || !id_rol) {
-            return res.status(400).json({ mensaje: 'Todos los campos son obligatorios.' });
+        if (!nombres || !apellidos || !correo || !contrasena || !id_rol) {
+            return res.status(400).json({ mensaje: 'Todos los campos son obligatorios, incluyendo los apellidos.' });
         }
 
         const usuarioExistente = await pool.query('SELECT * FROM usuarios_sistema WHERE correo = $1', [correo]);
@@ -144,11 +144,11 @@ const registrarUsuario = async (req, res) => {
         const passwordHasheada = await bcrypt.hash(contrasena, salt);
 
         const query = `
-            INSERT INTO usuarios_sistema (nombres, correo, contrasena, id_rol) 
-            VALUES ($1, $2, $3, $4) 
-            RETURNING id_usuario, nombres, correo, id_rol
+            INSERT INTO usuarios_sistema (nombres, apellidos, correo, contrasena, id_rol) 
+            VALUES ($1, $2, $3, $4, $5) 
+            RETURNING id_usuario, nombres, apellidos, correo, id_rol
         `;
-        const valores = [nombres, correo, passwordHasheada, id_rol];
+        const valores = [nombres, apellidos, correo, passwordHasheada, id_rol];
         
         const nuevoUsuario = await pool.query(query, valores);
 
