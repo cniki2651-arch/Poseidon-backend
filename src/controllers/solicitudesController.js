@@ -67,6 +67,7 @@ const obtenerSolicitudes = async (req, res) => {
                 sol.tipo_solicitud, 
                 sol.estado, 
                 sol.fecha_creacion,
+                sol.observacion,
                 soc.dni, 
                 soc.nombres, 
                 soc.apellidos,
