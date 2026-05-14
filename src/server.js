@@ -17,10 +17,12 @@ app.use(express.json());
 const authRoutes = require('./routes/authRoutes');
 const solicitudesRoutes = require('./routes/solicitudesRoutes');
 const sociosRoutes = require('./routes/sociosRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/solicitudes', solicitudesRoutes);
 app.use('/api/socios', sociosRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
