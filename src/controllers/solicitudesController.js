@@ -69,7 +69,8 @@ const obtenerSolicitudes = async (req, res) => {
                 sol.fecha_creacion,
                 soc.dni, 
                 soc.nombres, 
-                soc.apellidos
+                soc.apellidos,
+                soc.clasificacion
             FROM solicitudes sol
             INNER JOIN socios soc ON sol.id_socio = soc.id_socio
             ORDER BY sol.fecha_creacion DESC
