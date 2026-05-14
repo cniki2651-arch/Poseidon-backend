@@ -84,7 +84,64 @@ const obtenerSolicitudes = async (req, res) => {
     }
 };
 
+// Función para EVALUAR una solicitud (Aprobar o Rechazar)
+const evaluarSolicitud = async (req, res) => {
+    const { id } = req.params; // ID de la solicitud
+    const { estado_nuevo, observacion } = req.body; 
+    
+    const id_revisor = req.usuario.id_usuario; 
+
+    if (estado_nuevo !== 'Aprobado' && estado_nuevo !== 'Rechazado') {
+        return res.status(400).json({ mensaje: 'El estado debe ser Aprobado o Rechazado.' });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Actualizar la tabla SOLICITUDES
+        const updateSolicitudQuery = `
+            UPDATE solicitudes 
+            SET estado = $1, observacion = $2, id_usuario_revisor = $3, fecha_resolucion = NOW()
+            WHERE id_solicitud = $4
+            RETURNING id_socio
+        `;
+        const resSolicitud = await client.query(updateSolicitudQuery, [estado_nuevo, observacion || null, id_revisor, id]);
+
+        if (resSolicitud.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ mensaje: 'Solicitud no encontrada.' });
+        }
+
+        const id_socio = resSolicitud.rows[0].id_socio;
+
+        // 2. Actualizar la tabla SOCIOS
+        // Si aprueba, el socio pasa a estar 'Al día'. Si rechaza, pasa a 'Rechazado'.
+        const estadoSocio = estado_nuevo === 'Aprobado' ? 'Al día' : 'Rechazado';
+        
+        const updateSocioQuery = `
+            UPDATE socios 
+            SET estado_membresia = $1
+            WHERE id_socio = $2
+        `;
+        await client.query(updateSocioQuery, [estadoSocio, id_socio]);
+
+        await client.query('COMMIT');
+
+        res.status(200).json({ mensaje: `Solicitud ${estado_nuevo.toLowerCase()} con éxito.` });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error al evaluar solicitud:', error);
+        res.status(500).json({ mensaje: 'Error interno al procesar la evaluación.' });
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     crearSolicitud,
-    obtenerSolicitudes
+    obtenerSolicitudes,
+    evaluarSolicitud
 };
