@@ -20,6 +20,7 @@ const sociosRoutes = require('./routes/sociosRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const embarcacionesRoutes = require('./routes/embarcacionesRoutes');
 const radasRoutes = require('./routes/radasRoutes');
+const tripulantesRoutes = require('./routes/tripulantesRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/solicitudes', solicitudesRoutes);
@@ -27,6 +28,7 @@ app.use('/api/socios', sociosRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/embarcaciones', embarcacionesRoutes);
 app.use('/api/radas', radasRoutes);
+app.use('/api/tripulantes', tripulantesRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
