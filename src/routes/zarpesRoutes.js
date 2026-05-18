@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { obtenerZarpes, crearZarpe, aprobarZarpe } = require('../controllers/zarpesController');
 const { verificarToken, autorizarRoles } = require('../middlewares/authMiddleware');
 const { obtenerZarpes, crearZarpe, aprobarZarpe, obtenerZarpePorId } = require('../controllers/zarpesController');
 
