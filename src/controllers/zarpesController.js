@@ -95,4 +95,4 @@ const obtenerZarpePorId = async (req, res) => {
     }
 };
 
-module.exports = { obtenerZarpes, crearZarpe, aprobarZarpe };
+module.exports = { obtenerZarpes, crearZarpe, aprobarZarpe, obtenerZarpePorId };
