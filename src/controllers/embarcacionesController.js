@@ -5,7 +5,7 @@ const obtenerEmbarcaciones = async (req, res) => {
     try {
         const query = `
             SELECT 
-                e.id_embarcacion, e.matricula, e.nombre_nave, e.tipo, e.eslora, e.estado_capitania,
+                e.id_embarcacion, e.id_socio, e.matricula, e.nombre_nave, e.tipo, e.eslora, e.estado_capitania,
                 s.nombres, s.apellidos
             FROM embarcaciones e
             INNER JOIN socios s ON e.id_socio = s.id_socio
