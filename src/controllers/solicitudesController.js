@@ -59,7 +59,7 @@ const crearSolicitud = async (req, res) => {
     }
 };
 
-// Función para LISTAR solicitudes (Con INNER JOIN a la tabla socios)
+// Función para LISTAR solicitudes
 const obtenerSolicitudes = async (req, res) => {
     try {
         const query = `
@@ -72,13 +72,14 @@ const obtenerSolicitudes = async (req, res) => {
                 soc.dni, 
                 soc.nombres, 
                 soc.apellidos,
-                soc.clasificacion
+                soc.clasificacion,
+                td.siglas AS tipo_doc_siglas
             FROM solicitudes sol
             INNER JOIN socios soc ON sol.id_socio = soc.id_socio
+            LEFT JOIN tipos_documento td ON soc.id_tipo_doc = td.id_tipo_doc
             ORDER BY sol.fecha_creacion DESC
         `;
         const resultado = await pool.query(query);
-        
         res.status(200).json(resultado.rows);
     } catch (error) {
         console.error('Error al obtener solicitudes:', error);
