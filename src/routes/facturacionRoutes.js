@@ -14,7 +14,7 @@ router.post('/generar', verificarToken, autorizarRoles(4), generarFacturacionMen
 
 // RUTA GET: Listar facturas vencidas sin pagar (morosidad)
 // Acceso: Jefe (1) y Cobranza (5)
-router.get('/morosos', verificarToken, autorizarRoles(1, 5), obtenerFacturasMorosas);
+router.get('/morosos', verificarToken, autorizarRoles(1, 4, 5), obtenerFacturasMorosas);
 
 // RUTA POST: Fraccionar una deuda existente en múltiples cuotas
 // Acceso: SOLO Finanzas (4)
