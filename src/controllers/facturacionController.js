@@ -269,28 +269,36 @@ const fraccionarDeuda = async (req, res) => {
 
 const obtenerEstadosCuentaGeneral = async (req, res) => {
     try {
-        // Hacemos un JOIN entre socios y sus facturas pendientes
         const query = `
             SELECT 
                 s.id_socio,
                 s.nombres,
                 s.apellidos,
-                s.estado_membresia,
-                COALESCE(SUM(f.monto_total), 0) AS total_deuda
+                COALESCE(SUM(f.monto_total), 0) AS total_deuda,
+                COALESCE(SUM(CASE WHEN f.fecha_vencimiento < CURRENT_DATE THEN 1 ELSE 0 END), 0) AS facturas_vencidas
             FROM socios s
-            LEFT JOIN facturacion f ON s.id_socio = f.id_socio AND f.estado_pago != 'Pagada'
-            GROUP BY s.id_socio, s.nombres, s.apellidos, s.estado_membresia
+            LEFT JOIN facturacion f ON s.id_socio = f.id_socio AND f.estado_pago NOT IN ('Pagada', 'Fraccionada')
+            GROUP BY s.id_socio, s.nombres, s.apellidos
             ORDER BY total_deuda DESC;
         `;
         const resultado = await pool.query(query);
 
-        // Formateamos para el frontend
-        const estados = resultado.rows.map(row => ({
-            id_socio: row.id_socio,
-            socio: `${row.nombres} ${row.apellidos}`,
-            total_deuda: Number(row.total_deuda),
-            estado: row.total_deuda > 0 ? (row.estado_membresia === 'Pendiente' ? 'Moroso' : 'Con Deuda') : 'Al día'
-        }));
+        // Lógica de los 3 semáforos
+        const estados = resultado.rows.map(row => {
+            let estadoFinanciero = 'Al día';
+            
+            if (row.total_deuda > 0) {
+                // Si debe dinero, revisamos si alguna factura ya venció
+                estadoFinanciero = row.facturas_vencidas > 0 ? 'Moroso' : 'Pendiente';
+            }
+
+            return {
+                id_socio: row.id_socio,
+                socio: `${row.nombres} ${row.apellidos}`,
+                total_deuda: Number(row.total_deuda),
+                estado: estadoFinanciero
+            };
+        });
 
         res.status(200).json(estados);
     } catch (error) {
