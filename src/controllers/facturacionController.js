@@ -267,9 +267,42 @@ const fraccionarDeuda = async (req, res) => {
     }
 };
 
+const obtenerEstadosCuentaGeneral = async (req, res) => {
+    try {
+        // Hacemos un JOIN entre socios y sus facturas pendientes
+        const query = `
+            SELECT 
+                s.id_socio,
+                s.nombres,
+                s.apellidos,
+                s.estado_membresia,
+                COALESCE(SUM(f.monto_total), 0) AS total_deuda
+            FROM socios s
+            LEFT JOIN facturacion f ON s.id_socio = f.id_socio AND f.estado_pago != 'Pagada'
+            GROUP BY s.id_socio, s.nombres, s.apellidos, s.estado_membresia
+            ORDER BY total_deuda DESC;
+        `;
+        const resultado = await pool.query(query);
+
+        // Formateamos para el frontend
+        const estados = resultado.rows.map(row => ({
+            id_socio: row.id_socio,
+            socio: `${row.nombres} ${row.apellidos}`,
+            total_deuda: Number(row.total_deuda),
+            estado: row.total_deuda > 0 ? (row.estado_membresia === 'Pendiente' ? 'Moroso' : 'Con Deuda') : 'Al día'
+        }));
+
+        res.status(200).json(estados);
+    } catch (error) {
+        console.error('Error al obtener estados de cuenta:', error);
+        res.status(500).json({ mensaje: 'Error al cargar los estados de cuenta.' });
+    }
+};
+
 module.exports = {
     obtenerConsumosPendientes,
     generarFacturacionMensual,
     obtenerFacturasMorosas,
-    fraccionarDeuda
+    fraccionarDeuda,
+    obtenerEstadosCuentaGeneral
 };
