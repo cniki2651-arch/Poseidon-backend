@@ -358,5 +358,6 @@ module.exports = {
     generarFacturacionMensual,
     obtenerFacturasMorosas,
     fraccionarDeuda,
-    obtenerEstadosCuentaGeneral
+    obtenerEstadosCuentaGeneral,
+    obtenerDashboardFinanzas
 };
