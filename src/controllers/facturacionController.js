@@ -1,9 +1,6 @@
 const pool = require('../config/db');
 
 // Función para LISTAR los consumos pendientes de facturación, agrupados por socio.
-// Usado por el panel de Finanzas (Estados de Cuenta / Generar Facturación Mensual).
-// Consolida todos los registros que Secretaría guardó en la tabla "consumos"
-// con estado = 'Pendiente de Facturación', agrupados por socio.
 const obtenerConsumosPendientes = async (req, res) => {
     try {
         // 1. Traer todos los consumos pendientes, con datos básicos del socio
@@ -306,6 +303,53 @@ const obtenerEstadosCuentaGeneral = async (req, res) => {
     } catch (error) {
         console.error('Error al obtener estados de cuenta:', error);
         res.status(500).json({ mensaje: 'Error al cargar los estados de cuenta.' });
+    }
+};
+
+const obtenerDashboardFinanzas = async (req, res) => {
+    try {
+        // 1. Datos para las Tarjetas (KPIs) de consumos pendientes
+        const kpisQuery = `
+            SELECT 
+                COALESCE(SUM(monto), 0) AS total_pendiente,
+                COUNT(DISTINCT id_socio) AS socios_afectados,
+                COUNT(id_consumo) AS cantidad_consumos
+            FROM consumos
+            WHERE estado = 'Pendiente de Facturación';
+        `;
+        const kpisResult = await pool.query(kpisQuery);
+
+        // 2. Datos para Gráfica de Torta: Distribución de la Deuda Total
+        const distribucionQuery = `
+            SELECT 
+                CASE 
+                    WHEN estado_pago = 'Pendiente' AND fecha_vencimiento >= CURRENT_DATE THEN 'Por Cobrar (A tiempo)'
+                    WHEN estado_pago = 'Pendiente' AND fecha_vencimiento < CURRENT_DATE THEN 'Morosidad'
+                    WHEN estado_pago = 'Fraccionada' THEN 'Deuda Fraccionada'
+                END as nombre,
+                COALESCE(SUM(monto_total), 0) as valor
+            FROM facturacion
+            WHERE estado_pago != 'Pagada'
+            GROUP BY nombre
+            HAVING COALESCE(SUM(monto_total), 0) > 0;
+        `;
+        const distribucionResult = await pool.query(distribucionQuery);
+
+        res.status(200).json({
+            kpis: {
+                total_pendiente: Number(kpisResult.rows[0].total_pendiente),
+                socios_afectados: Number(kpisResult.rows[0].socios_afectados),
+                cantidad_consumos: Number(kpisResult.rows[0].cantidad_consumos)
+            },
+            graficaDistribucion: distribucionResult.rows.map(r => ({
+                nombre: r.nombre,
+                valor: Number(r.valor)
+            }))
+        });
+
+    } catch (error) {
+        console.error('Error al obtener datos del dashboard:', error);
+        res.status(500).json({ mensaje: 'Error al cargar el panel de finanzas.' });
     }
 };
 
