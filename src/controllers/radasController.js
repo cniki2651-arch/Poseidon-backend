@@ -27,16 +27,25 @@ const asignarRada = async (req, res) => {
     const { id_embarcacion } = req.body;
 
     try {
+        // 1. REGLA DE TU COMPAÑERA: Validar que la embarcación esté registrada y validada por Capitanía
+        const checkEmb = await pool.query("SELECT estado_capitania FROM embarcaciones WHERE id_embarcacion = $1", [id_embarcacion]);
+        if (checkEmb.rowCount === 0) { // Usamos rowCount para mantener el estándar de tu código
+            return res.status(404).json({ mensaje: 'Embarcación no encontrada.' });
+        }
+        if (checkEmb.rows[0].estado_capitania !== 'Validado') {
+            return res.status(400).json({ mensaje: 'No se puede asignar una rada a una embarcación que no ha sido validada por la Dirección de Capitanías.' });
+        }
+
+        // 2. TU REGLA: Verificar si la rada ya está ocupada
         const verificarQuery = `SELECT estado FROM radas WHERE id_rada = $1`;
         const verificarResultado = await pool.query(verificarQuery, [id]);
 
         if (verificarResultado.rowCount === 0) {
             return res.status(404).json({ mensaje: 'Rada no encontrada.' });
         }
-
         if (verificarResultado.rows[0].estado === 'Ocupado' || verificarResultado.rows[0].estado === 'Ocupada') {
-            return res.status(409).json({ 
-                mensaje: 'La rada seleccionada ya se encuentra ocupada. Seleccione otra disponible.' 
+            return res.status(409).json({
+                mensaje: 'La rada seleccionada ya se encuentra ocupada. Seleccione otra disponible.'
             });
         }
 
