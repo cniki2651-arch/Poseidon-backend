@@ -28,18 +28,28 @@ const obtenerZarpes = async (req, res) => {
 // 2. Crear un nuevo Permiso de Zarpe
 const crearZarpe = async (req, res) => {
     const { 
-        id_socio, 
-        id_embarcacion, 
-        id_tripulante, 
-        fecha_salida, 
-        hora_salida, 
-        fecha_retorno, 
-        hora_retorno, 
-        destino, 
-        pasajeros // Viene como un Array de objetos: [{nombre: '...', documento: '...'}, ...]
+        id_socio, id_embarcacion, id_tripulante, 
+        fecha_salida, hora_salida, fecha_retorno, hora_retorno, 
+        destino, pasajeros 
     } = req.body;
 
     try {
+        const verificarDeudaQuery = `
+            SELECT COUNT(*) as deudas_vencidas 
+            FROM facturacion 
+            WHERE id_socio = $1 
+              AND estado_pago NOT IN ('Pagada', 'Fraccionada') 
+              AND fecha_vencimiento < CURRENT_DATE
+        `;
+        const resultadoDeuda = await pool.query(verificarDeudaQuery, [id_socio]);
+
+        if (Number(resultadoDeuda.rows[0].deudas_vencidas) > 0) {
+            return res.status(403).json({ 
+                mensaje: 'Operación denegada. El socio mantiene deuda activa con el club.' 
+            });
+        }
+
+        // Si no tiene deuda, procedemos con el registro del zarpe
         const query = `
             INSERT INTO zarpes (id_socio, id_embarcacion, id_tripulante, fecha_salida, hora_salida, fecha_retorno, hora_retorno, destino, pasajeros, estado)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Pendiente')
@@ -47,18 +57,7 @@ const crearZarpe = async (req, res) => {
         `;
         
         const pasajerosJSON = JSON.stringify(pasajeros || []);
-
-        const values = [
-            id_socio, 
-            id_embarcacion, 
-            id_tripulante, 
-            fecha_salida, 
-            hora_salida, 
-            fecha_retorno, 
-            hora_retorno, 
-            destino, 
-            pasajerosJSON // Insertamos el string JSON estructurado
-        ];
+        const values = [id_socio, id_embarcacion, id_tripulante, fecha_salida, hora_salida, fecha_retorno, hora_retorno, destino, pasajerosJSON];
         
         const resultado = await pool.query(query, values);
 

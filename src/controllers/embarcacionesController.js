@@ -23,6 +23,12 @@ const obtenerEmbarcaciones = async (req, res) => {
 const crearEmbarcacion = async (req, res) => {
     const { id_socio, matricula, nombre_nave, tipo, eslora } = req.body;
 
+    if (eslora === undefined || eslora === null || eslora <= 0) {
+        return res.status(400).json({ 
+            mensaje: 'La eslora es obligatoria y debe ser un valor positivo mayor a cero.' 
+        });
+    }
+
     try {
         const query = `
             INSERT INTO embarcaciones (id_socio, matricula, nombre_nave, tipo, eslora, estado_capitania)
@@ -35,7 +41,6 @@ const crearEmbarcacion = async (req, res) => {
         res.status(201).json({ mensaje: 'Embarcación registrada con éxito', embarcacion: resultado.rows[0] });
     } catch (error) {
         console.error('Error al crear embarcación:', error);
-        // Manejo de error si la matrícula se repite (asumiendo que le pusiste UNIQUE en la BD)
         if (error.code === '23505') {
             return res.status(400).json({ mensaje: 'La matrícula ingresada ya existe.' });
         }

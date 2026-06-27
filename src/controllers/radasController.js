@@ -27,17 +27,27 @@ const asignarRada = async (req, res) => {
     const { id_embarcacion } = req.body;
 
     try {
+        const verificarQuery = `SELECT estado FROM radas WHERE id_rada = $1`;
+        const verificarResultado = await pool.query(verificarQuery, [id]);
+
+        if (verificarResultado.rowCount === 0) {
+            return res.status(404).json({ mensaje: 'Rada no encontrada.' });
+        }
+
+        if (verificarResultado.rows[0].estado === 'Ocupado' || verificarResultado.rows[0].estado === 'Ocupada') {
+            return res.status(409).json({ 
+                mensaje: 'La rada seleccionada ya se encuentra ocupada. Seleccione otra disponible.' 
+            });
+        }
+
         const query = `
             UPDATE radas 
             SET id_embarcacion = $1, estado = 'Ocupado' 
             WHERE id_rada = $2 
             RETURNING *
         `;
-        const resultado = await pool.query(query, [id_embarcacion, id]);
+        await pool.query(query, [id_embarcacion, id]);
         
-        if (resultado.rowCount === 0) {
-            return res.status(404).json({ mensaje: 'Rada no encontrada.' });
-        }
         res.status(200).json({ mensaje: 'Rada asignada con éxito.' });
     } catch (error) {
         console.error('Error al asignar rada:', error);
