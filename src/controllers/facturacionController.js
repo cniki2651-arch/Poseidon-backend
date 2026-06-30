@@ -629,6 +629,33 @@ const obtenerPagosRealizados = async (req, res) => {
     }
 };
 
+const obtenerDeudaSocio = async (req, res) => {
+    const { id } = req.params; // El ID del socio (ej: 3)
+    
+    try {
+        const verificarDeudaQuery = `
+            SELECT COUNT(*) as deudas_vencidas 
+            FROM facturacion 
+            WHERE id_socio = $1 
+              AND estado_pago NOT IN ('Pagada', 'Fraccionada') 
+              AND fecha_vencimiento < CURRENT_DATE
+        `;
+        const resultado = await pool.query(verificarDeudaQuery, [id]);
+        
+        // Convertimos el resultado a número
+        const cantidadDeudas = Number(resultado.rows[0].deudas_vencidas);
+
+        // Devolvemos el dato al frontend
+        res.status(200).json({ 
+            deudas_vencidas: cantidadDeudas,
+            esMoroso: cantidadDeudas > 0
+        });
+    } catch (error) {
+        console.error('Error al verificar deuda del socio:', error);
+        res.status(500).json({ mensaje: 'Error interno al consultar deudas.' });
+    }
+};
+
 module.exports = {
     obtenerConsumosPendientes,
     obtenerTodosConsumos,
@@ -639,5 +666,6 @@ module.exports = {
     obtenerEstadosCuentaGeneral,
     obtenerDashboardFinanzas,
     registrarPago,
-    obtenerPagosRealizados  
+    obtenerPagosRealizados,
+    obtenerDeudaSocio
 };

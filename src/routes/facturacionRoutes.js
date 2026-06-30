@@ -11,7 +11,8 @@ const {
     obtenerEstadosCuentaGeneral, 
     obtenerDashboardFinanzas,
     registrarPago,
-    obtenerPagosRealizados  
+    obtenerPagosRealizados,
+    obtenerDeudaSocio
 } = require('../controllers/facturacionController');
 
 
@@ -58,5 +59,8 @@ router.post('/pagar', verificarToken, autorizarRoles(1, 4, 5), registrarPago);
 // RUTA GET: Listar historial de pagos realizados
 // Acceso: Jefe, Finanzas y Cobranza
 router.get('/pagados', verificarToken, autorizarRoles(1, 4, 5), obtenerPagosRealizados);
+
+// RUTA GET: Obtener la deuda de un socio específico
+router.get('/deuda/:id', verificarToken, autorizarRoles(1, 4, 5), obtenerDeudaSocio);
 
 module.exports = router;
