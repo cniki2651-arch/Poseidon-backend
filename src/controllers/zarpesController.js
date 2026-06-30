@@ -34,7 +34,7 @@ const crearZarpe = async (req, res) => {
     } = req.body;
 
     try {
-        // 1. REGLA DE NEGOCIO: Verificar que el socio exista y su estado general (Código de tu compañera)
+        // 1. REGLA DE NEGOCIO: Verificar que el socio exista y su estado general
         const checkSocio = await pool.query("SELECT estado_membresia FROM socios WHERE id_socio = $1", [id_socio]);
         if (checkSocio.rowCount === 0) {
             return res.status(404).json({ mensaje: 'Socio no encontrado.' });
@@ -43,7 +43,7 @@ const crearZarpe = async (req, res) => {
             return res.status(403).json({ mensaje: 'Zarpe Bloqueado: El socio mantiene deudas de membresía o facturas vencidas pendientes de pago.' });
         }
 
-        // 2. REGLA DE NEGOCIO CRÍTICA: Validación dinámica de facturas (Tu código)
+        // 2. REGLA DE NEGOCIO CRÍTICA: Validación dinámica de facturas
         const verificarDeudaQuery = `
             SELECT COUNT(*) as deudas_vencidas 
             FROM facturacion 
@@ -59,7 +59,7 @@ const crearZarpe = async (req, res) => {
             });
         }
 
-        // 3. REGLA DE NEGOCIO: Verificar que la embarcación esté validada por Capitanía (Código de tu compañera)
+        // 3. REGLA DE NEGOCIO: Verificar que la embarcación esté validada por Capitanía
         const checkEmb = await pool.query("SELECT estado_capitania FROM embarcaciones WHERE id_embarcacion = $1", [id_embarcacion]);
         if (checkEmb.rowCount === 0) {
             return res.status(404).json({ mensaje: 'Embarcación no encontrada.' });
@@ -68,7 +68,7 @@ const crearZarpe = async (req, res) => {
             return res.status(400).json({ mensaje: 'Zarpe Bloqueado: La embarcación seleccionada no tiene validación vigente de Capitanía de Puerto.' });
         }
 
-        // 4. REGLA DE NEGOCIO: Verificar que la tripulación esté registrada y autorizada (Código de tu compañera)
+        // 4. REGLA DE NEGOCIO: Verificar que la tripulación esté registrada y autorizada 
         const checkTrip = await pool.query("SELECT estado FROM tripulantes WHERE id_tripulante = $1", [id_tripulante]);
         if (checkTrip.rowCount === 0) {
             return res.status(404).json({ mensaje: 'Tripulante no encontrado.' });
