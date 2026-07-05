@@ -76,7 +76,63 @@ const obtenerSolicitudesPendientes = async (req, res) => {
   }
 };
 
+// Función para APROBAR el retiro y dar de baja al socio (VPG9-32)
+const aprobarBajaSocio = async (req, res) => {
+  const { id_solicitud, id_socio } = req.body;
+  const id_usuario_atencion = req.usuario.id_usuario;
+
+  if (!id_solicitud || !id_socio) {
+    return res.status(400).json({ mensaje: 'Faltan datos para procesar la baja.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. Verificación de seguridad backend: ¿Realmente tiene deuda 0?
+    const deudaQuery = `
+      SELECT COALESCE(SUM(monto_total), 0) AS total_deuda 
+      FROM facturacion 
+      WHERE id_socio = $1 AND estado_pago NOT IN ('Pagada', 'Fraccionada')
+    `;
+    const resDeuda = await client.query(deudaQuery, [id_socio]);
+    
+    if (Number(resDeuda.rows[0].total_deuda) > 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ mensaje: 'No se puede dar de baja. El socio mantiene deudas pendientes.' });
+    }
+
+    // 2. Marcar la solicitud como Aprobada
+    const updateSolicitud = `
+      UPDATE solicitudes_retiro 
+      SET estado_solicitud = 'Aprobada', fecha_procesamiento = CURRENT_TIMESTAMP, id_usuario_atencion = $1
+      WHERE id_solicitud = $2
+    `;
+    await client.query(updateSolicitud, [id_usuario_atencion, id_solicitud]);
+
+    // 3. Dar de baja al socio en el sistema
+    const updateSocio = `
+      UPDATE socios 
+      SET estado_membresia = 'Retirado' 
+      WHERE id_socio = $1
+    `;
+    await client.query(updateSocio, [id_socio]);
+
+    await client.query('COMMIT');
+    res.status(200).json({ mensaje: 'Socio dado de baja exitosamente del club.' });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error al procesar la baja del socio:', error);
+    res.status(500).json({ mensaje: 'Error interno al procesar la baja.' });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
     registrarSolicitudRetiro,
-    obtenerSolicitudesPendientes
+    obtenerSolicitudesPendientes,
+    aprobarBajaSocio
 };
