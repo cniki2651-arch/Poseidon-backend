@@ -39,6 +39,44 @@ const registrarSolicitudRetiro = async (req, res) => {
   }
 };
 
+// Función para LISTAR las solicitudes de retiro pendientes (VPG9-32)
+const obtenerSolicitudesPendientes = async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        sr.id_solicitud,
+        sr.id_socio,
+        sr.motivo,
+        sr.fecha_solicitud,
+        sr.estado_solicitud,
+        soc.nombres,
+        soc.apellidos,
+        soc.dni,
+        COALESCE(SUM(f.monto_total), 0) AS deuda_pendiente
+      FROM solicitudes_retiro sr
+      INNER JOIN socios soc ON sr.id_socio = soc.id_socio
+      LEFT JOIN facturacion f ON sr.id_socio = f.id_socio 
+           AND f.estado_pago NOT IN ('Pagada', 'Fraccionada')
+      WHERE sr.estado_solicitud = 'Pendiente'
+      GROUP BY sr.id_solicitud, soc.nombres, soc.apellidos, soc.dni
+      ORDER BY sr.fecha_solicitud ASC;
+    `;
+    const resultado = await pool.query(query);
+    
+    // Transformamos los datos numéricos para el frontend
+    const solicitudes = resultado.rows.map(row => ({
+      ...row,
+      deuda_pendiente: Number(row.deuda_pendiente)
+    }));
+
+    res.status(200).json(solicitudes);
+  } catch (error) {
+    console.error('Error al obtener solicitudes de retiro pendientes:', error);
+    res.status(500).json({ mensaje: 'Error al cargar las solicitudes pendientes.' });
+  }
+};
+
 module.exports = {
-  registrarSolicitudRetiro
+    registrarSolicitudRetiro,
+    obtenerSolicitudesPendientes
 };
