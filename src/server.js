@@ -7,8 +7,25 @@ const app = express();
 // Importar la conexión a la base de datos
 require('./config/db');
 
-// Middlewares globales
-app.use(cors());
+// ========================
+// CONFIGURACIÓN DE CORS
+// ========================
+const allowedOrigins = [
+  'http://localhost:8080',                  // frontend en desarrollo local
+  'https://club-nautico-web.vercel.app',    // frontend desplegado en Vercel
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permite peticiones sin origin (ej. Postman, curl, health checks) y las de la lista
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por política de CORS'));
+    }
+  },
+}));
+
 app.use(express.json({ limit: '1mb' }));
 
 // ========================
