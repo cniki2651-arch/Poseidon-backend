@@ -21,7 +21,7 @@ const mockRes = () => {
 };
 
 
-// CP-CN-LOG-02 | Rechazar credenciales incorrectas
+// CP-CN-LOG-02  Rechazar credenciales incorrectas
 
 describe('CP-CN-LOG-02 — Rechazar credenciales incorrectas', () => {
 

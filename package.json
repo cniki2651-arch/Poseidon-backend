@@ -18,6 +18,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^9.0.3",
     "pdfkit": "^0.19.1",
     "pg": "^8.20.0"
   },
@@ -26,15 +27,18 @@
     "nodemon": "^3.1.14"
   },
   "jest": {
-  "reporters": [
-    "default",
-    ["jest-html-reporter", {
-      "pageTitle": "CF-CN-MEM-02 — Rechazo de Membresía",
-      "outputPath": "./evidencia-tests.html",
-      "includeFailureMsg": true,
-      "includeConsoleLog": true,
-      "theme": "darkTheme"
-    }]
-  ]
-}
+    "reporters": [
+      "default",
+      [
+        "jest-html-reporter",
+        {
+          "pageTitle": "CF-CN-MEM-02 — Rechazo de Membresía",
+          "outputPath": "./evidencia-tests.html",
+          "includeFailureMsg": true,
+          "includeConsoleLog": true,
+          "theme": "darkTheme"
+        }
+      ]
+    ]
+  }
 }
