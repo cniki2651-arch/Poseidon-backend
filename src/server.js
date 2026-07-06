@@ -71,3 +71,6 @@ app.listen(PORT, () => {
     console.log(`🌊 Servidor escuchando en el puerto ${PORT}`);
     console.log("==================================================");
 });
+
+const disponibilidadServiciosRoutes = require('./routes/disponibilidadServiciosRoutes');
+   app.use('/api/consumos', disponibilidadServiciosRoutes);
