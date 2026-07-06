@@ -42,6 +42,7 @@ const zarpesRoutes = require('./routes/zarpesRoutes');
 const consumoRoutes = require('./routes/consumoRoutes');
 const facturacionRoutes = require('./routes/facturacionRoutes');
 const contactoRoutes = require('./routes/contactoRoutes');
+const retirosRoutes = require('./routes/retirosRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/solicitudes', solicitudesRoutes);
@@ -54,6 +55,8 @@ app.use('/api/radas', radasRoutes);
 app.use('/api/tripulantes', tripulantesRoutes);
 app.use('/api/zarpes', zarpesRoutes);
 app.use('/api', contactoRoutes);
+
+app.use('/api/retiros', retirosRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {

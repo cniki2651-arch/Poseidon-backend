@@ -547,13 +547,21 @@ const registrarPago = async (req, res) => {
         const interesMora = Number((Number(factura.monto_base) * tasaDiariaSBS * diasMora).toFixed(2));
         const montoFinal = Number((Number(factura.monto_base) + interesMora).toFixed(2));
 
-        // 3. Registrar el pago
+        // 3. Registrar el pago en facturación (Esto ya lo tiene tu compañero)
         const updateFacturaQuery = `
-         UPDATE facturacion 
-         SET estado_pago = 'Pagada', monto_total = $1, fecha_pago = CURRENT_DATE
-         WHERE id_factura = $2
-         `;
+            UPDATE facturacion 
+            SET estado_pago = 'Pagada', monto_total = $1, fecha_pago = CURRENT_DATE 
+            WHERE id_factura = $2
+        `;
         await client.query(updateFacturaQuery, [montoFinal, id_factura]);
+
+        if (diasMora > 0 && interesMora > 0) {
+        const insertMorosidadQuery = `
+            INSERT INTO morosidad_intereses (id_factura, dias_retraso, monto_interes_generado, fecha_calculo)
+            VALUES ($1, $2, $3, CURRENT_DATE)
+        `;
+        await client.query(insertMorosidadQuery, [id_factura, diasMora, interesMora]);
+        }
 
         // 4. Actualizar el estado del socio si ya no tiene facturas vencidas impagas
         const checkMorosoQuery = `

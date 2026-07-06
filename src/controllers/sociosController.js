@@ -12,7 +12,12 @@ const obtenerSocios = async (req, res) => {
                 soc.clasificacion, 
                 soc.estado_membresia, 
                 soc.fecha_ingreso,
-                td.siglas AS tipo_doc_siglas
+                td.siglas AS tipo_doc_siglas,
+                -- Validamos si el socio ya tiene una solicitud de retiro pendiente
+                EXISTS (
+                    SELECT 1 FROM solicitudes_retiro sr 
+                    WHERE sr.id_socio = soc.id_socio AND sr.estado_solicitud = 'Pendiente'
+                ) AS en_proceso_retiro
             FROM socios soc
             LEFT JOIN tipos_documento td ON soc.id_tipo_doc = td.id_tipo_doc
             WHERE soc.estado_membresia != 'Pendiente' AND soc.estado_membresia != 'Rechazado'
@@ -72,4 +77,3 @@ module.exports = {
     obtenerSocios,
     buscarSocioPorDocumento
 };
- 
