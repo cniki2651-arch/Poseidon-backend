@@ -1,12 +1,6 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const enviarContacto = async (req, res) => {
   const { nombre, correo, mensaje } = req.body;
@@ -22,8 +16,8 @@ const enviarContacto = async (req, res) => {
   }
 
   try {
-    await transporter.sendMail({
-      from: `"Formulario Web Poseidón" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: "Formulario Web Poseidón <onboarding@resend.dev>",
       to: process.env.EMAIL_TO,
       replyTo: correo,
       subject: `Nuevo mensaje de contacto de ${nombre}`,
